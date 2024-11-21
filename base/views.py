@@ -2,9 +2,11 @@ from django.shortcuts import render
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.generics import GenericAPIView
 from.models import Product, Productcategory
-from .serializers import ProductSerializer, ProductcategorySerializer
+from .serializers import ProductSerializer, ProductcategorySerializer,Userserializer
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.decorators import api_view
+from django.contrib.auth.hashers import make_password
 
 # Create your views here.
 class ProductApiView(ModelViewSet):
@@ -50,5 +52,20 @@ class ProductcategoryDetailApiView(GenericAPIView):
         product_category_objs = self.get_object()
         product_category_objs.delete()
         return Response(serializer.data, status=status.HTTP_204_NO_CONTENT)
+    
+
+#function based view
+@api_view(['POST'])
+def resister(request):
+    password = request.data.get('password')
+    hash_password = make_password(password)
+    data = request.data.copy()
+    data['password'] = hash_password
+    serializer = Userserializer(data = request.data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data)
+    else:
+        return Response(serializer.errors)
 
     
